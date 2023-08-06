@@ -1,5 +1,4 @@
 import telebot
-from aiogram import types
 from telebot import types
 
 import random
@@ -11,7 +10,7 @@ from Llama2.Llama2Class import Llama2
 from SpeechKIT.speechkit_voice_to_text import voice_to_text
 
 # Создание бота
-bot = telebot.TeleBot(config.token)
+bot = telebot.TeleBot(config.telegram_token)
 
 HELP = '''
 /start - Меню переключателя
@@ -19,7 +18,6 @@ HELP = '''
 /voice - Перевод с голосового на текст 
 /discount - Акция, скидка
 '''
-
 
 # Справочник
 @bot.message_handler(commands=['help'])
@@ -51,7 +49,7 @@ def check_callback_data(callback):
         # Чтение файла, чтобы понять вспомнить суть разговора или начать разговор
         Llama2Bot = Llama2(id_user)
 
-        Llama2Bot.readfile(directory_file='auchan')
+        Llama2Bot.readfile(directory_file='*')
 
         bot.send_message(callback.message.chat.id, 'Спрашивайте, буду рад помочь!')
 
@@ -68,7 +66,7 @@ def check_callback_data(callback):
 
             logs = Llama2Bot.logs
 
-            bot.send_message(message.chat.id, f'Ответ: {logs["answer"]}')
+            bot.send_message(message.chat.id, f'Ответ: {logs[id_user][0]["answer"]}')
 
         @bot.message_handler(content_types=['voice'])
         def voice_processing(message):
@@ -84,6 +82,15 @@ def check_callback_data(callback):
 
             # Отправляем текст с голосового сообщения
             bot.send_message(message.chat.id, f'Текст с голосового сообщения: {text}')
+
+            print('prompt:', text)
+            bot.send_message(message.chat.id, f'Ваш вопрос: {text}')
+
+            Llama2Bot.answer(text)
+
+            logs = Llama2Bot.logs
+
+            bot.send_message(message.chat.id, f'Ответ: {logs[id_user][0]["answer"]}')
 
 
     elif(callback.data == "btn2"):
@@ -102,7 +109,7 @@ def start(message):
     # Чтение файла, чтобы понять вспомнить суть разговора или начать разговор
     Llama2Bot = Llama2(id_user)
 
-    Llama2Bot.readfile(directory_file='auchan')
+    Llama2Bot.readfile(directory_file='*')
 
     bot.send_message(message.chat.id, 'Спрашивайте, буду рад помочь!')
 
@@ -119,7 +126,7 @@ def start(message):
 
         logs = Llama2Bot.logs
 
-        bot.send_message(message.chat.id, f'Ответ: {logs["answer"]}')
+        bot.send_message(message.chat.id, f'Ответ: {logs[id_user][0]["answer"]}')
 
 
 # ГОЛОСОВОЕ СООБЩЕНИЕ

@@ -15,26 +15,17 @@ from .json_function import json_for_logs
 # print("Текущий рабочий каталог:", os.getcwd())
 
 class Llama2():
-
-
     # To disable this warning, you can either:
     # 	- Avoid using `tokenizers` before the fork if possible
     # 	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
 
     # Для отключения ошибок токенизации
-    os.environ["TOKENIZERS_PARALLELISM"] = "false"
+    # os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
     def __init__(self, id_user):
         self.id_user = id_user
 
-        self.logs = {
-            'id_user': id_user,
-            'prompt': None,
-            'answer': None,
-            'time': None,
-            'id_text': None,
-            'text': None
-        }
+        self.logs = dict
 
         # Объединить с относительным путем к папке
         self.current_file_dir = os.path.dirname(os.path.abspath(__file__))
@@ -74,8 +65,8 @@ class Llama2():
             }
 
         # with TG bot
-        except:
-            return "Unable to find the database"
+        except Exception as e:
+            print('Ошибка!\n', e)
 
 
         embeddings = HuggingFaceEmbeddings(
@@ -83,9 +74,13 @@ class Llama2():
             # Expected one of cpu, cuda, ipu, xpu, mkldnn, opengl, opencl, ideep, hip, ve, ort, mps, xla, lazy, vulkan, meta, hpu
             model_kwargs={'device': device})
 
+        start_time = time.time()
         # create and save the local database
         db = FAISS.from_documents(texts, embeddings)
         db.save_local("faiss")
+        end_time = time.time()
+        time_taken = end_time - start_time
+        print(f'Время переобучения модели: {time_taken:.3f} в секундах')
 
     def answer(self, question, max_new_tokens=256, temperature=0.01, device='cpu'):
         # Запоминаем текущее время перед выполнением кода
@@ -106,6 +101,25 @@ class Llama2():
         # https://huggingface.co/TheBloke/Llama-2-7B-Chat-GGML
         model_dir = os.path.join(self.current_file_dir, "llama-2-7b-chat.ggmlv3.q8_0.bin")
 
+        '''
+        Config
+            `Parameter`                                 Description
+            `top_k`                        The top-k value to use for sampling.
+            `top_p`                        The top-p value to use for sampling.
+            `temperature`                  The temperature to use for sampling.
+            `repetition_penalty`           The repetition penalty to use for sampling.
+            `last_n_tokens`                The number of last tokens to use for repetition penalty.
+            `seed`                         The seed value to use for sampling tokens.
+            `max_new_tokens`               The maximum number of new tokens to generate.
+            `stop`                         A list of sequences to stop generation when encountered.
+            `stream`                       Whether to stream the generated text.
+            `reset`                        Whether to reset the model state before generating text.
+            `batch_size`                   The batch size to use for evaluating tokens in a single prompt.
+            `threads`                      The number of threads to use for evaluating tokens.
+            `context_length`               The maximum context length to use.
+            `gpu_layers`                   The number of layers to run on GPU.
+        '''
+        # https: // github.com / marella / ctransformers
         # load the language model
         llm = CTransformers(model=model_dir,
                             model_type='llama',
@@ -136,19 +150,22 @@ class Llama2():
 
         output = qa_llm({'query': question})
 
-        # Запоминаем текущее время после завершения кода
         end_time = time.time()
-        # Вычисляем время выполнения
         time_taken = end_time - start_time
 
-        # print('Ответ:', output["result"])
-        # print(f"Время выполнения: {time_taken:.6f} секунд")
+        print('Ответ:', output["result"])
+        print(f"Время выполнения: {time_taken:.6f} секунд")
 
         self.logs = {
-            'id_user': self.id_user,
-            'prompt': question,
-            'answer': output['result'],
-            'time': time_taken
+            self.id_user: [
+                {
+                    'prompt': question,
+                    'answer': output['result'],
+                    'time': time_taken,
+                    'id_text': None,
+                    'text': None
+                }
+            ]
         }
 
         print('output:', output['result'])

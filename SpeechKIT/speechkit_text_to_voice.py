@@ -1,6 +1,6 @@
 import argparse
 import requests
-from SpeechKIT.config import *
+import config
 
 TEXT = \
 '''
@@ -10,11 +10,11 @@ TEXT = \
 def synthesize():
    url = 'https://tts.api.cloud.yandex.net/speech/v1/tts:synthesize'
    headers = {
-       'Authorization': 'Bearer ' + IAM_TOKEN,
+       'Authorization': 'Bearer ' + config.IAM_TOKEN,
    }
 
    data = {
-       'folderId': FOLDER_ID,
+       'folderId': config.FOLDER_ID,
        'text': TEXT,
        'lang': 'ru-RU',
        # 'voice':'alena', # премиум - жрет в 10 раз больше денег

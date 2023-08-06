@@ -1,6 +1,8 @@
 import unittest
 
-from ..json_function import load_data_all, write_data, merge_data, load_data_for_id_user, delete_data_for_id_user
+# from json_function import load_data_all, write_data, merge_data, load_data_for_id_user, delete_data_for_id_user
+from ..json_function import json_for_logs
+
 
 data_json = {
     "id_user": [
@@ -87,15 +89,16 @@ data_json_two_users = {
 }
 
 class test_json(unittest.TestCase):
-
     # Проверка на присутствия файла
     def test_write_and_read_file(self):
+        JS_class = json_for_logs()
+
         # Создаем файл с данным
-        write_data(data_json)
+        JS_class.write_data(data=data_json)
 
         # Проверяем на наличие и сходимости
         self.assertEqual(
-            load_data_all(),
+            JS_class.load_data_all(),
             {'id_user': [
                 {'prompt': 'Who AlexDad?',
                  'answer': 'AlexDad is DataScience',
@@ -107,15 +110,17 @@ class test_json(unittest.TestCase):
 
     # Проверка на добавлении json дата
     def test_append_json_in_json(self):
+        JS_class = json_for_logs()
+
         # Создаем файл с данным
-        write_data(data_json)
+        JS_class.write_data(data_json)
 
         # Изменяем файл - добавление новые данных
-        merge_data(data_json1)
+        JS_class.merge_data(data_json1)
 
         # Проверяем на наличие и сходимости
         self.assertEqual(
-            load_data_all(),
+            JS_class.load_data_all(),
             {'id_user': [
                 {'prompt': 'Who AlexDad?',
                  'answer': 'AlexDad is DataScience',
@@ -133,12 +138,14 @@ class test_json(unittest.TestCase):
 
     # Проверка на добавлении json дата с идентификатором пользователя
     def test_and_read_file_with_id(self):
+        JS_class = json_for_logs()
+
         # Создаем файл с данным
-        write_data(data_json_with_id)
+        JS_class.write_data(data_json_with_id)
 
         # Проверяем на наличие и сходимости
         self.assertEqual(
-            load_data_all(),
+            JS_class.load_data_all(),
             {'369350471': [
                 {'prompt': 'Who Keanu Reeves?',
                  'answer': 'Kiany Rivs is pretty boy',
@@ -151,15 +158,17 @@ class test_json(unittest.TestCase):
 
     # Проверка на добавлении json дата с идентификатором пользователя
     def test_append_json_in_json_with_id(self):
+        JS_class = json_for_logs()
+
         # Создаем файл с данным
-        write_data(data_json_with_id)
+        JS_class.write_data(data_json_with_id)
 
         # Изменяем файл - добавление новые данных
-        merge_data(data_json_with_id_1, str(369350471))
+        JS_class.merge_data(data_json_with_id_1, str(369350471))
 
         # Проверяем на наличие и сходимости
         self.assertEqual(
-            load_data_all(),
+            JS_class.load_data_all(),
             {'369350471': [
                 {'prompt': 'Who Keanu Reeves?',
                  'answer': 'Kiany Rivs is pretty boy',
@@ -176,12 +185,14 @@ class test_json(unittest.TestCase):
             ]})
 
     def test_search_id_user_and_get_info(self):
+        JS_class = json_for_logs()
+
         # Создаем файл с данным
-        write_data(data_json_two_users)
+        JS_class.write_data(data_json_two_users)
 
         # Проверяем на наличие и сходимости
         self.assertEqual(
-            load_data_for_id_user('198498415'),
+            JS_class.load_data_for_id_user('198498415'),
             [{'prompt': 'Who James Bond?',
              'answer': 'James Bond is Military Special Forces',
              'time': '100',
@@ -204,15 +215,17 @@ class test_json(unittest.TestCase):
 
 
     def test_delete_data_of_id_user(self):
+        JS_class = json_for_logs()
+
         # Создаем файл с данным
-        write_data(data_json_two_users)
+        JS_class.write_data(data_json_two_users)
 
         # Удаляем данные по id пользователя
-        delete_data_for_id_user('369350478')
+        JS_class.delete_data_for_id_user('369350478')
 
         # Проверяем на наличие и сходимости
         self.assertEqual(
-            load_data_for_id_user('198498415'),
+            JS_class.load_data_for_id_user('198498415'),
             [{'prompt': 'Who James Bond?',
               'answer': 'James Bond is Military Special Forces',
               'time': '100',

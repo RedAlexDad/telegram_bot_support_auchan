@@ -3,19 +3,19 @@
 import urllib.request
 import json
 
-import SpeechKIT.config
+import config
 
 with open("speech.ogg", "rb") as f:
     data = f.read()
 
 params = "&".join([
     "topic=general",
-    "folderId=%s" % FOLDER_ID,
+    "folderId=%s" % config.FOLDER_ID,
     "lang=ru-RU"
 ])
 
 url = urllib.request.Request("https://stt.api.cloud.yandex.net/speech/v1/stt:recognize?%s" % params, data=data)
-url.add_header("Authorization", "Bearer %s" % IAM_TOKEN)
+url.add_header("Authorization", "Bearer %s" % config.IAM_TOKEN)
 
 responseData = urllib.request.urlopen(url).read().decode('UTF-8')
 decodedData = json.loads(responseData)

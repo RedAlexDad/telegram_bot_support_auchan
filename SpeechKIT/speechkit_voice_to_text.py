@@ -4,7 +4,7 @@ import urllib.request
 import json
 import os
 
-from SpeechKIT.config import *
+import config
 
 class voice_to_text():
     def __init__(self):
@@ -13,7 +13,7 @@ class voice_to_text():
 
         self.params = "&".join([
             "topic=general",
-            "folderId=%s" % FOLDER_ID,
+            "folderId=%s" % config.FOLDER_ID,
             "lang=ru-RU"
         ])
 
@@ -27,7 +27,7 @@ class voice_to_text():
             url = urllib.request.Request(
                 "https://stt.api.cloud.yandex.net/speech/v1/stt:recognize?%s" % self.params, data=data)
 
-            url.add_header("Authorization", "Bearer %s" % IAM_TOKEN)
+            url.add_header("Authorization", "Bearer %s" % config.IAM_TOKEN)
             responseData = urllib.request.urlopen(url).read().decode('UTF-8')
             decodedData = json.loads(responseData)
 
