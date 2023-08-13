@@ -7,11 +7,11 @@ import tiktoken
 # import auchan_data.shops as SHOPS
 # import auchan_data.refund as REFUND
 
+from config import CHAT_GPT_API_KEY
+
 from config import IAM_TOKEN
 class chatGPT():
     def __init__(self):
-        CHAT_GPT_API_KEY = "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"
-
         SYSTEM = """Вы добрый отзывчивый помощник магазина Ашан и помогаете покупателям отвечая на их вопросы.
             Ваше имя Ашанчик.
             Инструкции:

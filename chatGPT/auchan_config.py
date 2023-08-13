@@ -1,6 +1,3 @@
-# Chat GPT API Key
-CHAT_GPT_API_KEY = "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"
-
 # настройка роли асистента
 SYSTEM = """Вы добрый отзывчивый помощник магазина Ашан и помогаете покупателям отвечая на их вопросы.
 Ваше имя Ашанчик.
