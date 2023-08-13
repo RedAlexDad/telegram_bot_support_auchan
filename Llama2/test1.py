@@ -3,15 +3,15 @@
 
 from Llama2Class import Llama2
 
-mybot = Llama2('5435345')
+mybot = Llama2('369350478')
 
-mybot.readfile(directory_file='online_retail')
+mybot.readfile(directory_file='OrderGoods')
 
-prompt = "Is there a PARIS FASHION YELLOW COAT RACK on the list?"
+prompt = "Можно ли вернуть продукт, если продукт в поврежденном упаковке?"
 
 mybot.answer(prompt)
 
 logs = mybot.logs
 
-print('Вопрос:', logs['prompt'])
-print('Ответ:', logs['answer'])
+print('Вопрос:', logs['369350478']['prompt'])
+print('Ответ:', logs['369350478']['answer'])

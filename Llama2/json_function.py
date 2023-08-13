@@ -28,10 +28,11 @@ class json_for_logs():
                         'text': info_data['text']
                     }
                 temp.append(y)
-            self.write_data(data)
+            self.write_data(data=data, title=title)
         # Если файл не существует
-        except:
-            self.write_data(data_json)
+        except Exception as e:
+            print('Ошибка! Идет перезапись БД. Тип ошибки:', e)
+            self.write_data(data=data_json, title=title)
 
     def load_data_for_id_user(self, id_user, title=LOCAL_DIRECTORY_LOGS):
         try:
@@ -49,7 +50,8 @@ class json_for_logs():
                     }
                     temp.append(y)
             return temp
-        except:
+        except Exception as e:
+            print('Ошибка! Идет перезапись БД. Тип ошибки:', e)
             return 'Error! There is no such identifier'
 
 
@@ -74,7 +76,8 @@ class json_for_logs():
                             }
                             new_data[id_user_data].append(y)
                         temp.append(new_data)
-            self.write_data(new_data)
-        except:
+            self.write_data(new_data, title=title)
+        except Exception as e:
+            print('Ошибка! Идет перезапись БД. Тип ошибки:', e)
             # return 'Error! There is no such identifier'
             pass

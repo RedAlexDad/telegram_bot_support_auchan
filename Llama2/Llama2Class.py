@@ -11,6 +11,7 @@ import time
 import os
 
 from .json_function import json_for_logs
+# from json_function import *
 
 # print("Текущий рабочий каталог:", os.getcwd())
 
@@ -64,23 +65,22 @@ class Llama2():
                 'text': texts
             }
 
+            embeddings = HuggingFaceEmbeddings(
+                model_name='sentence-transformers/all-MiniLM-L6-v2',
+                # Expected one of cpu, cuda, ipu, xpu, mkldnn, opengl, opencl, ideep, hip, ve, ort, mps, xla, lazy, vulkan, meta, hpu
+                model_kwargs={'device': device})
+
+            start_time = time.time()
+            # create and save the local database
+            db = FAISS.from_documents(texts, embeddings)
+            db.save_local("faiss")
+            end_time = time.time()
+            time_taken = end_time - start_time
+            print(f'Время переобучения модели: {time_taken:.3f} в секундах')
+
         # with TG bot
         except Exception as e:
             print('Ошибка!\n', e)
-
-
-        embeddings = HuggingFaceEmbeddings(
-            model_name='sentence-transformers/all-MiniLM-L6-v2',
-            # Expected one of cpu, cuda, ipu, xpu, mkldnn, opengl, opencl, ideep, hip, ve, ort, mps, xla, lazy, vulkan, meta, hpu
-            model_kwargs={'device': device})
-
-        start_time = time.time()
-        # create and save the local database
-        db = FAISS.from_documents(texts, embeddings)
-        db.save_local("faiss")
-        end_time = time.time()
-        time_taken = end_time - start_time
-        print(f'Время переобучения модели: {time_taken:.3f} в секундах')
 
     def answer(self, question, max_new_tokens=256, temperature=0.01, device='cpu'):
         # Запоминаем текущее время перед выполнением кода
@@ -88,12 +88,12 @@ class Llama2():
 
         # prepare the template we will use when prompting the AI
         template = """Use the following pieces of information to answer the user's question.
-        If you don't know the answer, just say that you don't know, don't try to make up an answer.
         Context: {context}
         Question: {question}
-        Only return the helpful answer below and nothing else.
-        Helpful answer:
+        Return only the answer below in Russian and nothing more.
+        Answer:
         """
+        # If you don't know the exact answer, just say that you need to contact the operator's help to resolve legal issues.
 
         # Объединить с относительным путем к папке модели
         # Ссылка на скачивания модельки (7 ГБ):

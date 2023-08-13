@@ -4,7 +4,7 @@ import urllib.request
 import json
 import os
 
-import config
+from config import FOLDER_ID, IAM_TOKEN
 
 class voice_to_text():
     def __init__(self):
@@ -13,7 +13,7 @@ class voice_to_text():
 
         self.params = "&".join([
             "topic=general",
-            "folderId=%s" % config.FOLDER_ID,
+            "folderId=%s" % FOLDER_ID,
             "lang=ru-RU"
         ])
 
@@ -27,15 +27,15 @@ class voice_to_text():
             url = urllib.request.Request(
                 "https://stt.api.cloud.yandex.net/speech/v1/stt:recognize?%s" % self.params, data=data)
 
-            url.add_header("Authorization", "Bearer %s" % config.IAM_TOKEN)
+            url.add_header("Authorization", "Bearer %s" % IAM_TOKEN)
             responseData = urllib.request.urlopen(url).read().decode('UTF-8')
             decodedData = json.loads(responseData)
 
             if decodedData.get("error_code") is None:
                 print(f'Текст с голосового сообщения: {decodedData.get("result")}')
                 self.text = decodedData.get("result")
-        except:
-            print('Не существует файл')
+        except Exception as e:
+            print('Ошибка! Тип ошибки:', e)
 
 
 '''
