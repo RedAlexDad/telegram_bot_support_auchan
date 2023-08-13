@@ -2,7 +2,7 @@ import openai
 import tiktoken
 
 # конфиг и файлы с базами знаний
-# from auchan_config import SYSTEM, CHAT_GPT_API_KEY
+from config import CHAT_GPT_API_KEY
 # import auchan_data.info as INFO
 # import auchan_data.shops as SHOPS
 # import auchan_data.refund as REFUND
@@ -10,8 +10,6 @@ import tiktoken
 from config import IAM_TOKEN
 class chatGPT():
     def __init__(self):
-        CHAT_GPT_API_KEY = "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"
-
         SYSTEM = """Вы добрый отзывчивый помощник магазина Ашан и помогаете покупателям отвечая на их вопросы.
             Ваше имя Ашанчик.
             Инструкции:
@@ -45,7 +43,7 @@ class chatGPT():
 
         """.strip()
 
-        print(SYSTEM)
+        # print(SYSTEM)
         # self.model = "gpt-3.5-turbo"  # 4096 токенов
         # self.model = "gpt-3.5-turbo-16k"  # 16384 токена
         self.model = "gpt-4"  # 8192 токена
@@ -113,14 +111,3 @@ class chatGPT():
 
         # сохраняем контекст диалога
         self.messages.append({"role": "assistant", "content": self.chat_response})
-
-# chat = chatGPT()
-#
-# # chat.review_model()
-#
-# # ввод пользователя
-# content = ''
-#
-# while not 'пока' in content.lower():
-#     content = input("Пользователь: ").strip()
-#     chat.dialog(content=content)
