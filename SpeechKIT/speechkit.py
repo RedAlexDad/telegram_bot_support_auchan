@@ -1,10 +1,37 @@
 # https://cloud.yandex.ru/docs/speechkit/stt/api/request-examples
-
+import requests
 import urllib.request
 import json
 import os
 
 from config import FOLDER_ID, IAM_TOKEN
+
+class text_to_voice():
+    def __init__(self):
+        self.url = 'https://tts.api.cloud.yandex.net/speech/v1/tts:synthesize'
+        self.headers = {
+            'Authorization': 'Bearer ' + IAM_TOKEN,
+        }
+    def translate(self, TEXT):
+        data = {
+            'folderId': FOLDER_ID,
+            'text': TEXT,
+            'lang': 'ru-RU',
+            # 'voice':'alena', # премиум - жрет в 10 раз больше денег
+            'voice': 'filipp',  # oksana
+            # 'emotion': 'evil',
+            'speed': '1.0',
+            # по умолчанию конвертит в oggopus, кот никто не понимает, зато занимат мало места
+            # 'format': 'lpcm',
+            # 'sampleRateHertz': 48000,
+        }
+
+        with requests.post(self.url, headers=self.headers, data=data, stream=True) as resp:
+            if resp.status_code != 200:
+                raise RuntimeError("Invalid response received: code: %d, message: %s" % (resp.status_code, resp.text))
+
+            for chunk in resp.iter_content(chunk_size=None):
+                yield chunk
 
 class voice_to_text():
     def __init__(self):
