@@ -1,3 +1,4 @@
+import os
 import telebot
 from telebot import types
 
@@ -15,7 +16,7 @@ HELP = '''
 /chatGPT - chatGPT
 /LlamaGPT - LlamaGPT
 /voice - Перевод с голосового на текст 
-/discount - Акция, скидка
+/photo - Сохранение фото в БД
 '''
 
 # Справочник
@@ -89,6 +90,8 @@ def start(message):
 
         # bot.send_message(message.chat.id, f"Токенов: {chat_auchan.conv_history_tokens}")
 
+        bot.send_message(message.chat.id, f"{chat_auchan.intent}")
+
         bot.send_message(message.chat.id, f'\nАшанчик: {chat_auchan.chat_response}\n')
 
     @bot.message_handler(content_types=['voice'])
@@ -121,27 +124,25 @@ def start(message):
 # ГОЛОСОВОЕ СООБЩЕНИЕ
 @bot.message_handler(commands=['voice'])
 def start(message):
-    voice(message)
-
-# ГОЛОСОВОЕ СООБЩЕНИЕ
-def voice(message):
     bot.send_message(message.chat.id, 'Перевод с голосового сообщения на текст')
     # @bot.message_handler(content_types=['voice'])
     # def voice_processing(message):
     VtoT = voice_to_text()
 
-    file_info = bot.get_file(message.voice.file_id)
-    downloaded_file = bot.download_file(file_info.file_path)
-    with open('SpeechKIT/speech.ogg', 'wb') as new_file:
-        new_file.write(downloaded_file)
+    @bot.message_handler(content_types=['voice'])
+    def voice_processing(message):
+        file_info = bot.get_file(message.voice.file_id)
+        downloaded_file = bot.download_file(file_info.file_path)
+        with open('SpeechKIT/speech.ogg', 'wb') as new_file:
+            new_file.write(downloaded_file)
 
-    VtoT.translate()
+        VtoT.translate()
 
-    if(VtoT.text == None or VtoT.text == ''):
-        bot.send_message(message.chat.id, f'Повторите попытку. Не удалось распознать голосовое сообщение.')
-    else:
-        # Отправляем текст с голосового сообщения
-        bot.send_message(message.chat.id, f'Текст с голосового сообщения: {VtoT.text}')
+        if(VtoT.text == None or VtoT.text == ''):
+            bot.send_message(message.chat.id, f'Повторите попытку. Не удалось распознать голосовое сообщение.')
+        else:
+            # Отправляем текст с голосового сообщения
+            bot.send_message(message.chat.id, f'Текст с голосового сообщения: {VtoT.text}')
 
 # Инициализация состояния
 user_states = {}
@@ -165,6 +166,33 @@ def start(message):
         'Продукт в неповрежденной упаковке?': None,
         'Продукт передан покупателю?': None
     }
+
+
+
+# Если пользователь прислал фото, то закидываем его в БД
+@bot.message_handler(commands=['photo'])
+def start(message):
+    bot.send_message(message.chat.id, 'Сохранение фоток в БД')
+    @bot.message_handler(content_types=["photo"])
+    def echo(message):
+        # Проверяем, существует ли папка уже
+        if not os.path.exists(f'database_photo/{str(message.from_user.id)}'):
+            # Создаем новую папку
+            os.mkdir(f'database_photo/{str(message.from_user.id)}')
+            # print(f"Папка '{str(message.from_user.id)}' создана.")
+        else:
+            # print(f"Папка '{str(message.from_user.id)}' уже существует.")
+            pass
+
+        file_info = bot.get_file(message.photo[-1].file_id)
+        file_id = message.photo[-1].file_id
+        downloaded_file = bot.download_file(file_info.file_path)
+        file_extension = file_info.file_path.split(".")[-1]
+
+        with open(f'database_photo/{message.from_user.id}/{file_id}.{file_extension}', 'wb') as new_file:
+            new_file.write(downloaded_file)
+
+        bot.reply_to(message, "Фото сохранено и принято. Передано в службу поддержки. Ожидайте решения.")
 
 # Функция переключателя
 @bot.callback_query_handler(func=lambda callback: callback.data)
