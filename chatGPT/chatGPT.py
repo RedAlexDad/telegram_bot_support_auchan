@@ -132,10 +132,15 @@ class chatGPT():
 
                 return duration
 
-    def prompt(self, content):
+    def prompt(self, content, voice_status=False, photo_status=False):
         if content == "":
             content = "Привет! Как тебя зовут?"
             # добавляем сообщение пользователя
+        print('='*100)
+        print(f'''
+        ID: {self.id_user}
+        Пользователь: {content}
+        ''')
 
         self.messages.append({"role": "user", "content": content})
         self.intent_prompt.append({"role": "user", "content": content})
@@ -162,12 +167,16 @@ class chatGPT():
             self.messages[1] = {"role": "assistant", "content": SHOPS.MSW_SCB}
         elif "об ашане" in self.intent:
             self.messages[1] = {"role": "assistant", "content": INFO.ASSISTANT}
+        elif "проверка чека" in self.intent:
+            self.messages[1] = {"role": "assistant", "content": 'Попросите клиента прислать фото чека для проверки. У Вас есть возможность проверить чек с помощью технологии Yandex Vision. Передаем работу его.'}
         else:
             self.messages[1] = {"role": "assistant", "content": COMMON.ASSISTANT}
 
         # общее число токенов
         self.conv_history_tokens = self.num_tokens_from_messages(self.messages)
+        print('-'*100)
         print(f"Токенов: {self.conv_history_tokens}, интент: {self.intent}")
+        print('-'*100)
 
         # удаляем прошлые сообщения, если число токенов превышает лимиты
         while self.conv_history_tokens + self.max_tokens >= self.token_limit:
@@ -182,6 +191,7 @@ class chatGPT():
         print(f'''
         Ашанчик: {self.chat_response}
         ''')
+        print('='*100)
 
         # сохраняем контекст диалога
         self.messages.append({"role": "assistant", "content": self.chat_response})
@@ -191,7 +201,9 @@ class chatGPT():
             'chatGPT': self.chat_response,
             'intent': self.intent,
             'common_token': self.conv_history_tokens,
-            'datetime': datetime.now()
+            'datetime': datetime.now(),
+            'voice_status': voice_status,
+            'photo_status': photo_status
         }
 
         # Добавляем диалог в логи пользователя
@@ -206,4 +218,13 @@ class chatGPT():
             JS = json_for_logs()
 
             JS.merge_data(self.logs, id_user=self.id_user)
+
+            # Лог диалога
+            self.logs = {
+                self.id_user: []
+            }
+            # Лог переписок
+            self.log_dialog = []
+            # Диалог и его свойства
+            self.dialog = dict
 

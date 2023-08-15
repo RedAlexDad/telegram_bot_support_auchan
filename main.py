@@ -1,12 +1,13 @@
 import os
 import telebot
-
-from config import telegram_token
-
+# Конфигурации
+from config import telegram_token, IAM_TOKEN, FOLDER_ID
+# ИИ ЧатГПТ
 from chatGPT.chatGPT import chatGPT
-
+# Голосовой синтез и распознавание
 from SpeechKIT.speechkit import voice_to_text, text_to_voice
-import uuid
+# Распознавание изображение
+from YandexVision.Vision import Vision
 
 # Создание бота
 bot = telebot.TeleBot(telegram_token)
@@ -37,7 +38,7 @@ def start(message):
     def echo(message):
         chat_auchan.prompt(content=message.text)
 
-        bot.send_message(message.chat.id, f'\nАшанчик: {chat_auchan.chat_response}\n')
+        bot.send_message(message.chat.id, f'{chat_auchan.chat_response}')
 
         with open('SpeechKIT/speech.ogg', "wb") as f:
             for audio_content in TtoV.translate(chat_auchan.chat_response):
@@ -61,12 +62,12 @@ def start(message):
             # Отправляем текст с голосового сообщения
             bot.send_message(message.chat.id, f'Текст с голосового сообщения: {VtoT.text}')
 
-        print('prompt:', VtoT.text)
+        # print('prompt:', VtoT.text)
         # bot.send_message(message.chat.id, f'Ваш вопрос: {VtoT.text}')
 
-        chat_auchan.prompt(content=VtoT.text)
+        chat_auchan.prompt(content=VtoT.text, voice_status=True)
 
-        bot.send_message(message.chat.id, f'\nАшанчик: {chat_auchan.chat_response}\n')
+        bot.send_message(message.chat.id, f'{chat_auchan.chat_response}')
 
         with open('SpeechKIT/speech.ogg', "wb") as f:
             for audio_content in TtoV.translate(chat_auchan.chat_response):
@@ -78,9 +79,9 @@ def start(message):
     @bot.message_handler(content_types=["photo"])
     def echo(message):
         # Проверяем, существует ли папка уже
-        if not os.path.exists(f'database_photo/{str(message.from_user.id)}'):
+        if not os.path.exists(f'database/photo/{str(message.from_user.id)}'):
             # Создаем новую папку
-            os.mkdir(f'database_photo/{str(message.from_user.id)}')
+            os.mkdir(f'database/photo/{str(message.from_user.id)}')
             # print(f"Папка '{str(message.from_user.id)}' создана.")
         else:
             # print(f"Папка '{str(message.from_user.id)}' уже существует.")
@@ -91,9 +92,31 @@ def start(message):
         downloaded_file = bot.download_file(file_info.file_path)
         file_extension = file_info.file_path.split(".")[-1]
 
-        with open(f'database_photo/{message.from_user.id}/{file_id}.{file_extension}', 'wb') as new_file:
+        with open(f'database/photo/{message.from_user.id}/{file_id}.{file_extension}', 'wb') as new_file:
             new_file.write(downloaded_file)
 
         bot.reply_to(message, "Фото сохранено и принято. Передано в службу поддержки. Ожидайте решения.")
+
+        CV = Vision(IAM_TOKEN, FOLDER_ID)
+
+        json_data = CV.request_analyze(image_path=f'database/photo/{message.from_user.id}/{file_id}.{file_extension}')
+
+        text = ' '.join(CV.extract_text(json_data))
+
+        # Отправляем текст после распознавание фотографии
+        # bot.send_message(message.chat.id, f'{text}')
+
+        chat_auchan.prompt(content=text, photo_status=True)
+
+        bot.send_message(message.chat.id, f'{chat_auchan.chat_response}')
+
+        with open('SpeechKIT/speech.ogg', "wb") as f:
+            for audio_content in TtoV.translate(chat_auchan.chat_response):
+                f.write(audio_content)
+
+        bot.send_voice(message.from_user.id, open('SpeechKIT/speech.ogg', 'rb'))
+
+
+
 
 bot.polling(none_stop=True)
