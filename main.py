@@ -76,7 +76,7 @@ def start(message):
 @bot.message_handler(commands=['chatGPT'])
 def start(message):
     bot.send_message(message.chat.id, text=f"Привет, {message.from_user.first_name}! Я бот Ашан, cпрашивайте, буду рад помочь!")
-    chat_auchan = chatGPT()
+    chat_auchan = chatGPT(message.from_user.id)
     # Голосовое распознавание
     VtoT = voice_to_text()
 
@@ -84,13 +84,13 @@ def start(message):
     def echo(message):
         # bot.send_message(message.chat.id, f'DEBUGGER:\nСообщение: {message.text}')
 
-        chat_auchan.dialog(content=message.text)
+        chat_auchan.prompt(content=message.text)
 
         # bot.send_message(message.chat.id, 'DEBUGGER:\nСообщение доставлено')
 
-        # bot.send_message(message.chat.id, f"Токенов: {chat_auchan.conv_history_tokens}")
+        # bot.send_message(message.chat.id, f"DEBUGGER:\nТокенов: {chat_auchan.conv_history_tokens}")
 
-        bot.send_message(message.chat.id, f"{chat_auchan.intent}")
+        # bot.send_message(message.chat.id, f"DEBUGGER:\n{chat_auchan.intent}")
 
         bot.send_message(message.chat.id, f'\nАшанчик: {chat_auchan.chat_response}\n')
 
