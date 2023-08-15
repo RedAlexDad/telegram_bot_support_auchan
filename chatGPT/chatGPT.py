@@ -103,27 +103,27 @@ class chatGPT():
         elif "доставка 18+" in self.intent:
             self.messages[1] = {"role": "assistant", "content": DELIVERY_ALK.ASSISTANT}
         elif "адреса ашан" in self.intent:
-            buff = self.messages[2]['content']
-            self.messages[2]['content'] = self.messages[2]['content'] + ' Какой город я написал? Ответьте только на последний вопрос - назовите город.'
+            # buff = self.messages[2]['content']
+            # self.messages[2]['content'] = self.messages[2]['content'] + ' Какой город я написал? Ответьте только на последний вопрос - назовите город.'
             # Адрес Ашана много, поэтому еще обратимся к chatGPT, чтобы подбирали конкретные адреса
-            self.messages[1] = {"role": "assistant", "content": "Если в тексте присутствуется название города, то сообщите название города"}
-
+            # self.messages[1] = {"role": "assistant", "content": "Если в тексте присутствуется название города, то сообщите название города"}
+            #
             # пытаемся получить названия города
-            city = self.get_response(model=self.model, msg=self.messages, tokens=30, temp=0.1)
-            print('-'*100)
-            print('Город:', city)
+            # city = self.get_response(model=self.model, msg=self.messages, tokens=30, temp=0.1)
+            # print('-'*100)
+            # print('Город:', city)
 
             # Используем регулярное выражение для поиска названий городов Москва
-            pattern = r'.+г\.\s+' + city + '.+'
-            list_shops = re.findall(pattern, SHOPS.ASSISTANT)
+            # pattern = r'.+г\.\s+' + city + '.+'
+            # list_shops = re.findall(pattern, SHOPS.ASSISTANT)
 
-            print('Список магазинов:')
-            for shop in list_shops:
-                print(shop)
-            print('-'*100)
+            # print('Список магазинов:')
+            # for shop in list_shops:
+            #     print(shop)
+            # print('-'*100)
 
-            self.messages[2]['content'] = buff
-            self.messages[1] = {"role": "assistant", "content": f'Далее перечислены адреса магазинов Ашан в России города: {city}. Их довольно много, выделите первые 15 магазина. В каждой строчке один адрес: {list_shops}'}
+            # self.messages[2]['content'] = buff
+            self.messages[1] = {"role": "assistant", "content": SHOPS.MSW_SCB}
         elif "об ашане" in self.intent:
             self.messages[1] = {"role": "assistant", "content": INFO.ASSISTANT}
         else:
