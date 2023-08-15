@@ -26,7 +26,7 @@ def start(message):
 @bot.message_handler(commands=['start'])
 def start(message):
     bot.send_message(message.chat.id, text=f"Привет, {message.from_user.first_name}! Я бот Ашан, cпрашивайте, буду рад помочь!")
-    chat_auchan = chatGPT()
+    chat_auchan = chatGPT(message.from_user.id)
 
     # Голосовое распознавание
     VtoT = voice_to_text()
@@ -35,7 +35,7 @@ def start(message):
 
     @bot.message_handler(content_types=["text"])
     def echo(message):
-        chat_auchan.dialog(content=message.text)
+        chat_auchan.prompt(content=message.text)
 
         bot.send_message(message.chat.id, f'\nАшанчик: {chat_auchan.chat_response}\n')
 
@@ -64,7 +64,7 @@ def start(message):
         print('prompt:', VtoT.text)
         # bot.send_message(message.chat.id, f'Ваш вопрос: {VtoT.text}')
 
-        chat_auchan.dialog(content=VtoT.text)
+        chat_auchan.prompt(content=VtoT.text)
 
         bot.send_message(message.chat.id, f'\nАшанчик: {chat_auchan.chat_response}\n')
 

@@ -1,48 +1,29 @@
 import openai
 import tiktoken
+from datetime import datetime
 
 # конфиг и файлы с базами знаний
+import chatGPT.auchan_config as CFG
+import chatGPT.auchan_data.intents as INTENT  # определение интента запроса
+import chatGPT.auchan_data.common as COMMON  # начальная настройка
+import chatGPT.auchan_data.delivery as DELIVERY  # "условия доставки"
+import chatGPT.auchan_data.delivery_alk as DELIVERY_ALK  # "доставка 18+"
+import chatGPT.auchan_data.delivery_faq as DELIVERY_FAQ  # "вопросы доставки"
+import chatGPT.auchan_data.delivery_free as DELIVERY_FREE  # "бесплатная доставка"
+import chatGPT.auchan_data.info as INFO  # "об ашане"
+import chatGPT.auchan_data.refund_exceptions as REFUND_EXC  # "возврат исключения"
+import chatGPT.auchan_data.refund_food as REFUND_FOOD  # "возврат продовольственного"
+import chatGPT.auchan_data.refund_nonfood as REFUND_NONFOOD  # "возврат непродовольственного"
+import chatGPT.auchan_data.shops as SHOPS  # "адреса ашан"
+# import chatGPT.auchan_data.city as CITY  # Города в РФ
+
 from config import CHAT_GPT_API_KEY
-# import auchan_data.info as INFO
-# import auchan_data.shops as SHOPS
-# import auchan_data.refund as REFUND
 
-from config import IAM_TOKEN
+from chatGPT.json_function import json_for_logs
+
+
 class chatGPT():
-    def __init__(self):
-        SYSTEM = """Вы добрый отзывчивый помощник магазина Ашан и помогаете покупателям отвечая на их вопросы.
-            Ваше имя Ашанчик.
-            Инструкции:
-            - Вы отвечаете только на вопросы, связанные с магазином Ашан. На посторонние вопросы отвечать строго запрещено.
-            - Если вы не уверены в ответе, вы можете сказать "Я не знаю" или "Я не уверен" и предложить пользователю переключить его на сотрудника магазина.
-        """
-
-        ASSISTANT = """
-            Спроси у покупателя какой товар он хочет вернуть.
-
-            Правила возврата продовольственных товаров:
-            - Продукты питания надлежащего качества, в неповрежденной упаковке и с действующим сроком годности возврату и обмену не подлежат. Вы можете отказаться от товаров при курьере или на кассе магазина. При том, частичная выдача заказа не предусмотрена.
-            - Продукты питания ненадлежащего качества, при условии, что недостаток возник до передачи товара покупателю, в пределах срока годности, принимаются на экспертизу для дальнейшего обмена или возврата денежных средств.
-
-            Правила возврата непродовольственных товаров:
-            Непродовольственный товар надлежащего качества вы имеете право вернуть в магазин в течение 7 дней с момента его покупки без объяснения причин, если:
-            - товар не был в употреблении;
-            - сохранен первоначальный вид товара и ярлыки;
-            - комплектация и упаковка не повреждены;
-            - товар не относится к товарам-исключениям*;
-            - сохранен товарный или кассовый чеки.
-
-            *К товарам-исключениям относятся предметы личной гигиены и парфюмерно-косметические товары; швейные и трикотажные изделия; бытовая химия, пестициды и агрохимикаты; растения.
-
-            Непродовольственный товар ненадлежащего качества при условии, что недостаток возник до передачи товара покупателю, принимается на экспертизу для дальнейшего обмена или возврата денежных средств не позднее, чем через 15 дней с момента покупки (исключения составляют случаи, описанные в Законе «О защите прав потребителей»).
-
-            Круглосуточная клиентская служба:
-            - Форма обратной связи (https://www.auchan.ru/feedback/)
-            - Контактный центр 8-800-700-5-800 (звонок бесплатный)
-            - Чат-бот (viber://pa?chatURI=auchanrusbot)
-
-        """.strip()
-
+    def __init__(self, id_user):
         # print(SYSTEM)
         # self.model = "gpt-3.5-turbo"  # 4096 токенов
         # self.model = "gpt-3.5-turbo-16k"  # 16384 токена
@@ -52,17 +33,62 @@ class chatGPT():
         self.temperature = 0.1
         self.token_limit = 8000
 
-        # затравка, настраиваем роль и даем базу для ответов
+        # настройка роли асистента для определения темы сообщения
+        self.intent_prompt = [
+            {"role": "system", "content": INTENT.SYSTEM},
+            {"role": "assistant", "content": INTENT.ASSISTANT}
+        ]
+
+        # настраиваем роли и даем базу для ответов
         self.messages = [
             # системная роль, чтобы задать поведение помошника
-            {"role": "system", "content": SYSTEM},
-            # база знаний асистента
-            {"role": "assistant", "content": ASSISTANT}
+            {"role": "system", "content": CFG.SYSTEM},
+            # промт для выяснения темы проблемы клиента
+            {"role": "assistant", "content": COMMON.ASSISTANT}
         ]
+
+        # ID пользователя
+        self.id_user = str(id_user)
+        # Лог диалога
+        self.logs = {
+            self.id_user: []
+        }
+        # Лог переписок
+        self.log_dialog = []
+        # Диалог и его свойства
+        self.dialog = dict
+
+        # Пример БД
+        # {
+        #     "id_user": [
+        #         [
+        #             {
+        #                 "user": "здравствуйте",
+        #                 "chatGPT": "Здравствуйте! Чем я могу помочь вам сегодня?",
+        #                 "intent": "Тема данного сообщения: \"начало диалога\".",
+        #                 "datetime": "2023-08-15 20:31:43.250329"
+        #             },
+        #             {
+        #                 "user": "я хочу купить фен, у вас есть?",
+        #                 "chatGPT": "Да, в магазинах Ашан представлен широкий ассортимент фенов различных брендов и моделей. Вы можете посетить ближайший магазин Ашан или ознакомиться с ассортиментом на нашем сайте. Если вам нужна помощь в выборе, я с удовольствием помогу!",
+        #                 "intent": "Тема сообщения: \"запрос на наличие товара\".",
+        #                 "datetime": "2023-08-15 20:31:58.815131"
+        #             },
+        #             {
+        #                 "user": "понял, спасибо, пока",
+        #                 "chatGPT": "На здоровье! Если у вас возникнут еще вопросы, не стесняйтесь обращаться. Приятных покупок! До свидания!",
+        #                 "intent": "\"конец диалога\"",
+        #                 "datetime": "2023-08-15 20:32:13.254727"
+        #             }
+        #         ],
+        #         ...
+        #     ]
+        # }
+
     def review_model(self):
         self.model = openai.Model.list()
         for model in self.model.data:
-           print(model.id)
+            print(model.id)
 
     # функция подсчета числа токенов
     def num_tokens_from_messages(self, messages):
@@ -77,37 +103,107 @@ class chatGPT():
         num_tokens += 2  # в каждом ответе используется <im_start> помощник
         return num_tokens
 
-    def dialog(self, content):
-        if content == '':
-            content = 'Привет!'
+    # функция делает запрос и возвращает ответ модели
+    def get_response(self, model="gpt-4", msg="", tokens=100, temp=0.1):
+        # формируем запрос к модели
+        completion = openai.ChatCompletion.create(
+            model=self.model,
+            messages=msg,
+            max_tokens=tokens,
+            temperature=temp
+        )
+        # получаем ответ
+        chat_response = completion.choices[0].message.content
+        return chat_response
 
-        # добавляем сообщение пользователя
+    def calculate_dialogue_duration(self, data_json):
+        # Подсчет и вывод общего времени для каждого диалога
+        for user_id, dialogues in data_json.items():
+            for dialogue in dialogues:
+                if len(dialogue) < 2:
+                    return None
+
+                start_time = datetime.strptime(dialogue[0]['datetime'], "%Y-%m-%d %H:%M:%S.%f")
+                end_time = datetime.strptime(dialogue[-1]['datetime'], "%Y-%m-%d %H:%M:%S.%f")
+                duration = (end_time - start_time).total_seconds()
+
+                if duration is not None:
+                    print(f"ID пользователя: {user_id}, Длительность диалога: {duration} секунд")
+
+                return duration
+
+    def prompt(self, content):
+        if content == "":
+            content = "Привет! Как тебя зовут?"
+            # добавляем сообщение пользователя
+
         self.messages.append({"role": "user", "content": content})
+        self.intent_prompt.append({"role": "user", "content": content})
+
+        # пытаемся получить тему сообщения
+        self.intent = self.get_response(model=self.model, msg=self.intent_prompt, tokens=100, temp=0.1)
+
+        # определяем совапдения по темам и загружаем нужный промт
+        if "возврат продовольственного" in self.intent:
+            self.messages[1] = {"role": "assistant", "content": REFUND_FOOD.ASSISTANT}
+        elif "возврат непродовольственного" in self.intent:
+            self.messages[1] = {"role": "assistant", "content": REFUND_NONFOOD.ASSISTANT}
+        elif "возврат исключения" in self.intent:
+            self.messages[1] = {"role": "assistant", "content": REFUND_EXC.ASSISTANT}
+        elif "условия доставки" in self.intent:
+            self.messages[1] = {"role": "assistant", "content": DELIVERY.ASSISTANT}
+        elif "бесплатная доставка" in self.intent:
+            self.messages[1] = {"role": "assistant", "content": DELIVERY_FREE.ASSISTANT}
+        elif "вопросы доставки" in self.intent:
+            self.messages[1] = {"role": "assistant", "content": DELIVERY_FAQ.ASSISTANT}
+        elif "доставка 18+" in self.intent:
+            self.messages[1] = {"role": "assistant", "content": DELIVERY_ALK.ASSISTANT}
+        elif "адреса ашан" in self.intent:
+            self.messages[1] = {"role": "assistant", "content": SHOPS.MSW_SCB}
+        elif "об ашане" in self.intent:
+            self.messages[1] = {"role": "assistant", "content": INFO.ASSISTANT}
+        else:
+            self.messages[1] = {"role": "assistant", "content": COMMON.ASSISTANT}
 
         # общее число токенов
         self.conv_history_tokens = self.num_tokens_from_messages(self.messages)
-        print(f"Токенов: {self.conv_history_tokens}")
+        print(f"Токенов: {self.conv_history_tokens}, интент: {self.intent}")
 
         # удаляем прошлые сообщения, если число токенов превышает лимиты
         while self.conv_history_tokens + self.max_tokens >= self.token_limit:
             del self.messages[2]
             self.conv_history_tokens = self.num_tokens_from_messages(self.messages)
 
-        # формируем запрос
-        completion = openai.ChatCompletion.create(
-            model=self.model,
-            messages=self.messages,
-            max_tokens=self.max_tokens,
-            temperature=self.temperature
-        )
-
-        # получаем ответ
-        self.chat_response = completion.choices[0].message.content
+        # формируем запрос и получаем ответ
+        self.chat_response = self.get_response(model=self.model, msg=self.messages, tokens=self.max_tokens,
+                                               temp=self.temperature)
 
         # выводим ответ
         print(f'''
-    Ашанчик: {self.chat_response}
-    ''')
+        Ашанчик: {self.chat_response}
+        ''')
 
         # сохраняем контекст диалога
         self.messages.append({"role": "assistant", "content": self.chat_response})
+
+        self.dialog = {
+            'user': content,
+            'chatGPT': self.chat_response,
+            'intent': self.intent,
+            'common_token': self.conv_history_tokens,
+            'datetime': datetime.now()
+        }
+
+        # Добавляем диалог в логи пользователя
+        self.log_dialog.append(self.dialog)
+
+        # Конец диалога
+        if "конец диалога" in self.intent:
+            self.messages[1] = {"role": "assistant", "content": COMMON.ASSISTANT}
+            # Конец измерения времени. Занесение данных в БД
+            self.logs[self.id_user].append(self.log_dialog)
+
+            JS = json_for_logs()
+
+            JS.merge_data(self.logs, id_user=self.id_user)
+
