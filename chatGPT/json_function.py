@@ -2,6 +2,7 @@ import json
 import os
 from datetime import datetime
 
+
 class json_for_logs():
     LOCAL_DIRECTORY_LOGS = f'{os.getcwd()}/database/logs'
 
@@ -28,19 +29,20 @@ class json_for_logs():
             with open(f"{title}.json", "w") as json_file:
                 json.dump(data, json_file, default=str, ensure_ascii=False, indent=4)
 
-            print("Данные успешно добавлены в JSON файл:", title)
+            # print("Данные успешно добавлены в JSON файл:", title)
         except Exception as e:
             print('Ошибка! Идет перезапись БД. Тип ошибки:', e)
             self.write_data(data=new_data_json, title=title)
 
     # Подсчет общее время
     def calculate_dialogue_duration(self, data_json):
-        duration_list = []
+        duration_json = {}
         # Подсчет и вывод общего времени для каждого диалога
         for user_id, dialogues in data_json.items():
+            duration_list = []
             for dialogue in dialogues:
                 if len(dialogue) < 2:
-                    return None
+                    duration_list.append(None)
 
                 start_time = datetime.strptime(dialogue[0]['datetime'], "%Y-%m-%d %H:%M:%S.%f")
                 end_time = datetime.strptime(dialogue[-1]['datetime'], "%Y-%m-%d %H:%M:%S.%f")
@@ -50,5 +52,6 @@ class json_for_logs():
                     print(f"ID пользователя: {user_id}, Длительность диалога: {duration} секунд")
 
                 duration_list.append(duration)
+            duration_json[user_id] = duration_list
 
-        return duration_list
+        return duration_json
