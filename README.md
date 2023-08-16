@@ -10,7 +10,7 @@ Hackathon: 4-19 августа 2023, https://ai-hackathon.gigaschool.ru/
 ## Кейс: АШАН: использование искусственного интеллекта в работе контакт-центра
 https://ai-hackathon.gigaschool.ru/cases
 
-Аретфакты проекта:
+Артефакты проекта:
 - [Telegram bot "Ашанчик"](https://t.me/AuchanSupportAI_bot)
 - [jupyter notebook настройка GPT-4 ChatML](https://github.com/RedAlexDad/telegram_bot_support_auchan/blob/main/chatgpt_chatml/achan_chat_gpt.ipynb)
 - [Презентация](https://docs.google.com/presentation/d/1UU9RzRVscuF-m62H9iRIyVqOfDBni-B6lq0zWgFUzWI/edit?usp=sharing)
