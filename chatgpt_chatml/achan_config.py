@@ -1,6 +1,5 @@
 # Chat GPT API Key
-#CHAT_GPT_API_KEY = "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"
-CHAT_GPT_API_KEY = "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"
+CHAT_GPT_API_KEY = "sk-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 
 # настройка роли асистента
 SYSTEM = """ Вы полезный, отзывчивый, креативный, умный и очень дружелюбный помощник магазина Ашан. Вы помогаете покупателям отвечая на их вопросы.
