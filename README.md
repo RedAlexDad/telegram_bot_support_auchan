@@ -8,7 +8,6 @@ Hackathon: 4-19 августа 2023, https://ai-hackathon.gigaschool.ru/
 Стек: `jupyter-notebook`, `python`, `openai`, `tiktoken`, `pyTelegramBotAPI`,`ChatGPT-4`, `YandexGPT`, `Яндекс DataSphere`, `Яндекс SpeechKit`, `Яндекс Vision`
 
 ## Кейс: АШАН: использование искусственного интеллекта в работе контакт-центра
-https://ai-hackathon.gigaschool.ru/cases
 
 Артефакты проекта:
 - [Telegram bot "Ашанчик"](https://t.me/AuchanSupportAI_bot)
