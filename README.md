@@ -11,7 +11,7 @@ Hackathon: 4-19 августа 2023, https://ai-hackathon.gigaschool.ru/
 
 Аретфакты проекта:
 - [Telegram bot "Ашанчик"](#)
-- [jupyter notebook настройка GPT-4 ChatML](#)
+- [jupyter notebook настройка GPT-4 ChatML](https://github.com/RedAlexDad/telegram_bot_support_auchan/blob/main/chatgpt_chatml/achan_chat_gpt.ipynb)
 - [Презентация](#)
 
 ---
