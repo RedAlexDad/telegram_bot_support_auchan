@@ -8,6 +8,11 @@ from Llama2.Llama2Class import Llama2
 from SpeechKIT.speechkit_voice_to_text import voice_to_text
 from chatGPT.chatGPT import chatGPT
 
+from database.ClassDatebase import DatabaseLogs
+from datetime import datetime
+
+import random
+
 # Создание бота
 bot = telebot.TeleBot(telegram_token)
 
@@ -23,6 +28,33 @@ HELP = '''
 @bot.message_handler(commands=['help'])
 def start(message):
     bot.send_message(message.chat.id, HELP)
+
+@bot.message_handler(commands=['DB'])
+def start(message):
+    bot.send_message(message.chat.id, 'DATEBASE')
+
+    DB = DatabaseLogs()
+    DB.connect()
+    DB.create_table()
+
+    @bot.message_handler(content_types=["text"])
+    def echo(message):
+
+        DB.insert(
+            # ID=message.from_user.id,
+            ID=random.randint(0, 2**31 - 1),
+            Name=message.from_user.first_name,
+            prompt=message.text,
+            answer='answer from gpt',
+            common_token=1000,
+            datetime=datetime.now(),
+            voice_status=False,
+            photo_status=False)
+
+        DB.select_all()
+
+        DB.close()
+
 
 
 # Меню переключателя
@@ -61,8 +93,6 @@ def start(message):
 
     @bot.message_handler(content_types=['voice'])
     def voice_processing(message):
-        voice(message)
-
         print('prompt:', VtoT.text)
         bot.send_message(message.chat.id, f'Ваш вопрос: {VtoT.text}')
 
@@ -178,7 +208,7 @@ def start(message):
         # Проверяем, существует ли папка уже
         if not os.path.exists(f'database_photo/{str(message.from_user.id)}'):
             # Создаем новую папку
-            os.mkdir(f'database_photo/{str(message.from_user.id)}')
+            os.mkdir(f'database/photo/{str(message.from_user.id)}')
             # print(f"Папка '{str(message.from_user.id)}' создана.")
         else:
             # print(f"Папка '{str(message.from_user.id)}' уже существует.")
@@ -189,7 +219,7 @@ def start(message):
         downloaded_file = bot.download_file(file_info.file_path)
         file_extension = file_info.file_path.split(".")[-1]
 
-        with open(f'database_photo/{message.from_user.id}/{file_id}.{file_extension}', 'wb') as new_file:
+        with open(f'database/photo/{message.from_user.id}/{file_id}.{file_extension}', 'wb') as new_file:
             new_file.write(downloaded_file)
 
         bot.reply_to(message, "Фото сохранено и принято. Передано в службу поддержки. Ожидайте решения.")
