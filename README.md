@@ -201,6 +201,7 @@ Hackathon: 4-19 августа 2023, https://ai-hackathon.gigaschool.ru/
 	- Григорьев Александр
 
 ---
+[Сертификат](Папин%20А.pdf)
 
 Полезные ссылки:
 - [Кейсы хакатона](https://ai-hackathon.gigaschool.ru/cases)
