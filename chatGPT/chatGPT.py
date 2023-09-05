@@ -32,6 +32,8 @@ class chatGPT():
         self.max_tokens = 1000
         self.temperature = 0.1
         self.token_limit = 8000
+        # Статус завершения диалога
+        self.end_dialog = False
 
         # настройка роли асистента для определения темы сообщения
         self.intent_prompt = [
@@ -227,4 +229,6 @@ class chatGPT():
             self.log_dialog = []
             # Диалог и его свойства
             self.dialog = dict
+            # Включаем статус завершения диалога
+            self.end_dialog = True
 

@@ -1,5 +1,8 @@
 import os
 import telebot
+from telebot import types
+import json
+
 # Конфигурации
 from config import telegram_token, IAM_TOKEN, FOLDER_ID
 # ИИ ЧатГПТ
@@ -17,6 +20,9 @@ HELP = '''
 /start - chatGPT
 '''
 
+# Здесь будут храниться все переписки, которые пользователям не понравилось качество обслуживания
+comments = {}
+
 # Справочник
 @bot.message_handler(commands=['help'])
 def start(message):
@@ -30,9 +36,9 @@ def start(message):
     chat_auchan = chatGPT(message.from_user.id)
 
     # Голосовое распознавание
-    VtoT = voice_to_text()
+    # VtoT = voice_to_text()
     # Синтез речи
-    TtoV = text_to_voice()
+    # TtoV = text_to_voice()
 
     @bot.message_handler(content_types=["text"])
     def echo(message):
@@ -40,11 +46,16 @@ def start(message):
 
         bot.send_message(message.chat.id, f'{chat_auchan.chat_response}')
 
-        with open('SpeechKIT/speech.ogg', "wb") as f:
-            for audio_content in TtoV.translate(chat_auchan.chat_response):
-                f.write(audio_content)
+        # with open('SpeechKIT/speech.ogg', "wb") as f:
+        #     for audio_content in TtoV.translate(chat_auchan.chat_response):
+        #         f.write(audio_content)
+        #
+        # bot.send_voice(message.from_user.id, open('SpeechKIT/speech.ogg', 'rb'))
 
-        bot.send_voice(message.from_user.id, open('SpeechKIT/speech.ogg', 'rb'))
+        bot.send_message(message.chat.id, f'DEBUGGER: статус диалога, TRUE - завершен: {chat_auchan.end_dialog}')
+
+        if (chat_auchan.end_dialog):
+            show_smiley_keyboard(message.chat.id)
 
 
     @bot.message_handler(content_types=['voice'])
@@ -54,26 +65,31 @@ def start(message):
         with open('SpeechKIT/speech.ogg', 'wb') as new_file:
             new_file.write(downloaded_file)
 
-        VtoT.translate()
+        # VtoT.translate()
 
-        if (VtoT.text == None or VtoT.text == ''):
-            bot.send_message(message.chat.id, f'Повторите попытку. Не удалось распознать голосовое сообщение.')
-        else:
-            # Отправляем текст с голосового сообщения
-            bot.send_message(message.chat.id, f'Текст с голосового сообщения: {VtoT.text}')
+        # if (VtoT.text == None or VtoT.text == ''):
+        #     bot.send_message(message.chat.id, f'Повторите попытку. Не удалось распознать голосовое сообщение.')
+        # else:
+        #     # Отправляем текст с голосового сообщения
+        #     bot.send_message(message.chat.id, f'Текст с голосового сообщения: {VtoT.text}')
 
         # print('prompt:', VtoT.text)
         # bot.send_message(message.chat.id, f'Ваш вопрос: {VtoT.text}')
 
-        chat_auchan.prompt(content=VtoT.text, voice_status=True)
+        # chat_auchan.prompt(content=VtoT.text, voice_status=True)
 
         bot.send_message(message.chat.id, f'{chat_auchan.chat_response}')
 
-        with open('SpeechKIT/speech.ogg', "wb") as f:
-            for audio_content in TtoV.translate(chat_auchan.chat_response):
-                f.write(audio_content)
+        # with open('SpeechKIT/speech.ogg', "wb") as f:
+        #     for audio_content in TtoV.translate(chat_auchan.chat_response):
+        #         f.write(audio_content)
+        #
+        # bot.send_voice(message.from_user.id, open('SpeechKIT/speech.ogg', 'rb'))
 
-        bot.send_voice(message.from_user.id, open('SpeechKIT/speech.ogg', 'rb'))
+        bot.send_message(message.chat.id, f'status end dialog: {chat_auchan.end_dialog}')
+
+        if (chat_auchan.end_dialog):
+            show_smiley_keyboard(message.chat.id)
 
     # Если пользователь прислал фото, то закидываем его в БД
     @bot.message_handler(content_types=["photo"])
@@ -110,12 +126,47 @@ def start(message):
 
         bot.send_message(message.chat.id, f'{chat_auchan.chat_response}')
 
-        with open('SpeechKIT/speech.ogg', "wb") as f:
-            for audio_content in TtoV.translate(chat_auchan.chat_response):
-                f.write(audio_content)
+        # with open('SpeechKIT/speech.ogg', "wb") as f:
+        #     for audio_content in TtoV.translate(chat_auchan.chat_response):
+        #         f.write(audio_content)
+        #
+        # bot.send_voice(message.from_user.id, open('SpeechKIT/speech.ogg', 'rb'))
 
-        bot.send_voice(message.from_user.id, open('SpeechKIT/speech.ogg', 'rb'))
+def show_smiley_keyboard(chat_id):
+    keyboard = types.InlineKeyboardMarkup(row_width=5)
+    keyboard.add(
+        types.InlineKeyboardButton('😢', callback_data='sad'),
+        types.InlineKeyboardButton('😞', callback_data='unhappy'),
+        types.InlineKeyboardButton('😐', callback_data='neutral'),
+        types.InlineKeyboardButton('😊', callback_data='happy'),
+        types.InlineKeyboardButton('😃', callback_data='smiling')
+    )
+    bot.send_message(chat_id, 'Пожалуйста, оцените качество обслуживания:', reply_markup=keyboard)
 
+@bot.callback_query_handler(func=lambda call: True)
+def handle_callback_query(call):
+    chat_id = call.message.chat.id
+    if call.data == 'sad':
+        bot.send_message(chat_id, 'Жаль, что Вы остались недовольны обслуживанием! Будем признательны, если Вы оставите комментарий. \
+            Так мы сможем учесть Ваши замечания и пожелания!')
+        bot.register_next_step_handler(call.message, save_comment, call.data)
+    elif call.data == 'unhappy':
+        bot.send_message(chat_id, 'Жаль, что Вы остались недовольны обслуживанием! Будем признательны, если Вы оставите комментарий. \
+            Так мы сможем учесть Ваши замечания и пожелания!')
+        bot.register_next_step_handler(call.message, save_comment, call.data)
+    elif call.data == 'neutral':
+        bot.send_message(call.message.chat.id, 'Благодарим Вас за оценку!')
+    elif call.data == 'happy':
+        bot.send_message(call.message.chat.id, 'Благодарим Вас за оценку! Всегда рады помочь!')
+    elif call.data == 'smiling':
+        bot.send_message(call.message.chat.id, 'Благодарим Вас за оценку! Всегда рады помочь!')
+
+def save_comment(message, emoji):
+    comment = message.text
+    comments[emoji] = comment
+    with open('comments.json', 'w') as file:
+        json.dump(comments, file)
+    bot.send_message(message.chat.id, 'Спасибо за комментарий! Мы ценим Ваше мнение.')
 
 
 
