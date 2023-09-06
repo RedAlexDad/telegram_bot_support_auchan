@@ -35,25 +35,42 @@ def start(message):
 
     DB = DatabaseLogs()
     DB.connect()
-    DB.create_table()
+    # DB.drop_table()
+    # DB.create_table()
+
+    # ID_correspondence = random.randint(0, 2 ** 31 - 1)
+    # ID_CLIENT = random.randint(0, int(message.from_user.id) - 1)
+    ID_CLIENT = int(message.from_user.id)
+
+    DB.insert_client(ID_CLIENT)
+
+    DB.insert_correspondence(ID_CLIENT, datetime.now(), 'last_time')
 
     @bot.message_handler(content_types=["text"])
     def echo(message):
+        DB.connect()
 
-        DB.insert(
+        DB.insert_dialog(
             # ID=message.from_user.id,
-            ID=random.randint(0, 2**31 - 1),
-            Name=message.from_user.first_name,
-            prompt=message.text,
+            # Name=message.from_user.first_name,
+            question=message.text,
             answer='answer from gpt',
+            intent='all intent',
             common_token=1000,
-            datetime=datetime.now(),
+            time_dialog=str(datetime.now()),
             voice_status=False,
-            photo_status=False)
+            photo_status=False,
+            ID_correspondence=DB.ID_correspondence
+        )
+
+        if(message.text in 'пока'):
+            DB.update_correspondence_end_time(ID_CLIENT, datetime.now())
 
         DB.select_all()
 
         DB.close()
+
+
 
 
 
