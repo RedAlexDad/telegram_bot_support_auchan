@@ -13,11 +13,16 @@ class Vision():
         self.image_data = None
 
     # Функция отправляет на сервер запрос на распознавание изображения и возвращает ответ сервера.
-    def request_analyze(self, image_path):
+    def request_analyze(self, image_path=None, image_data=None):
         # Преобразование фото
         try:
-            with open(image_path, "rb") as f:
-                self.image_data = base64.b64encode(f.read()).decode('utf-8')
+            if not(image_path == None):
+                with open(image_path, "rb") as f:
+                    self.image_data = base64.b64encode(f.read()).decode('utf-8')
+
+            if not(image_data == None):
+                self.image_data = base64.b64encode(image_data).decode('utf-8')
+
         except Exception as e:
             print('Ошибка! Тип ошибки:\n', e)
 

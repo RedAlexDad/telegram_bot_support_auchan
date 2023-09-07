@@ -19,7 +19,7 @@ import chatGPT.auchan_data.shops as SHOPS  # "адреса ашан"
 
 from config import CHAT_GPT_API_KEY
 
-from chatGPT.json_function import json_for_logs
+# from chatGPT.json_function import json_for_logs
 
 
 class chatGPT():
@@ -217,9 +217,9 @@ class chatGPT():
             # Конец измерения времени. Занесение данных в БД
             self.logs[self.id_user].append(self.log_dialog)
 
-            JS = json_for_logs()
+            # JS = json_for_logs()
 
-            JS.merge_data(self.logs, id_user=self.id_user)
+            # JS.merge_data(self.logs, id_user=self.id_user)
 
             # Лог диалога
             self.logs = {
