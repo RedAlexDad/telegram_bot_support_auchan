@@ -3,6 +3,7 @@ import requests
 import urllib.request
 import json
 import os
+import base64
 
 from config import FOLDER_ID, IAM_TOKEN
 
@@ -46,13 +47,15 @@ class voice_to_text():
 
         self.text = None
 
-    def translate(self):
+    def translate(self, voice_path=None, voice_data=None):
         try:
-            with open(self.current_file_dir + "/" + "speech.ogg", "rb") as f:
-                data = f.read()
+            if not(voice_path==None):
+                # with open(self.current_file_dir + "/" + "speech.ogg", "rb") as f:
+                with open(voice_path, "rb") as f:
+                    self.voice_data = f.read()
 
             url = urllib.request.Request(
-                "https://stt.api.cloud.yandex.net/speech/v1/stt:recognize?%s" % self.params, data=data)
+                "https://stt.api.cloud.yandex.net/speech/v1/stt:recognize?%s" % self.params, data=voice_data)
 
             url.add_header("Authorization", "Bearer %s" % IAM_TOKEN)
             responseData = urllib.request.urlopen(url).read().decode('UTF-8')

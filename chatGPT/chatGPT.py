@@ -134,7 +134,7 @@ class chatGPT():
 
                 return duration
 
-    def prompt(self, content, voice_status=False, photo_status=False):
+    def prompt(self, content, voice_file=None, photo_file=None):
         if content == "":
             content = "Привет! Как тебя зовут?"
             # добавляем сообщение пользователя
@@ -204,8 +204,8 @@ class chatGPT():
             'intent': self.intent,
             'common_token': self.conv_history_tokens,
             'datetime': datetime.now(),
-            'voice_status': voice_status,
-            'photo_status': photo_status
+            'voice_file': voice_file,
+            'photo_file': photo_file
         }
 
         # Добавляем диалог в логи пользователя

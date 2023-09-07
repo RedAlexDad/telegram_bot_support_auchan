@@ -1,6 +1,6 @@
 import psycopg2
 
-from config import host, port, user, sslmode, password, dbname, target_session_attrs
+from config import database, host, port, user, sslmode, password, dbname, target_session_attrs
 
 class DatabaseLogs():
     def __init__(self):
@@ -10,16 +10,29 @@ class DatabaseLogs():
     def connect(self):
         try:
             # Подключение к базе данных
-            self.connection = psycopg2.connect(
-                host=host,
-                port=port,
-                sslmode=sslmode,
-                user=user,
-                password=password,
-                dbname=dbname,
-                target_session_attrs=target_session_attrs
-            )
 
+            # С локального места (с ноутбука, компьютера)
+            try:
+                self.connection = psycopg2.connect(
+                    dbname=dbname,
+                    host=host,
+                    port=port,
+                    sslmode=sslmode,
+                    user=user,
+                    password=password,
+                    target_session_attrs=target_session_attrs
+                )
+            # С облачного сервиса (Yandex Cloud Functions)
+            # Отличие от вышеописанных здесь заключается в следующем - отсутствует защищенный протокол sslmode
+            except:
+                self.connection = psycopg2.connect(
+                    dbname = dbname,
+                    host = host,
+                    port = port,
+                    user = user,
+                    password = password,
+                    target_session_attrs = target_session_attrs
+                )
             print("[INFO] Успешное подключение к базе данных")
 
         except Exception as ex:
@@ -60,9 +73,8 @@ class DatabaseLogs():
                     intent VARCHAR NOT NULL,
                     common_token INT NOT NULL,
                     time_dialog VARCHAR NOT NULL,
-                    voice_status BOOL NOT NULL,
-                    photo_status BOOL NOT NULL,
-                    name_file_photo VARCHAR,
+                    voice_file VARCHAR NOT NULL,
+                    photo_file VARCHAR NOT NULL,
                     ID_client INT NOT NULL
                     );
 
@@ -99,13 +111,13 @@ class DatabaseLogs():
             self.connection.rollback()
             print("[INFO] Ошибка при заполнение данных:", ex)
 
-    def insert_dialog(self, question, answer, intent, common_token, time_dialog, voice_status, photo_status, name_file_photo, ID_client):
+    def insert_dialog(self, question, answer, intent, common_token, time_dialog, voice_file, photo_file, ID_client):
         try:
             with self.connection.cursor() as cursor:
                 cursor.execute(
-                    """INSERT INTO Dialog (question, answer, intent, common_token, time_dialog, voice_status, photo_status, name_file_photo, ID_client) VALUES
-                        (%s, %s, %s, %s, %s, %s, %s, %s, %s);""",
-                    (question, answer, intent, common_token, time_dialog, voice_status, photo_status, name_file_photo, ID_client)
+                    """INSERT INTO Dialog (question, answer, intent, common_token, time_dialog, voice_file, photo_file, ID_client) VALUES
+                        (%s, %s, %s, %s, %s, %s, %s, %s);""",
+                    (question, answer, intent, common_token, time_dialog, voice_file, photo_file, ID_client)
                 )
 
                 # Подтверждение изменений
