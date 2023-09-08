@@ -45,6 +45,7 @@ class DatabaseLogs():
                 cursor.execute("""
                 DROP TABLE Client CASCADE;
                 DROP TABLE Dialog CASCADE;
+                DROP TABLE Emotion CASCADE;
                 """)
 
             # Подтверждение изменений
@@ -59,15 +60,15 @@ class DatabaseLogs():
         try:
             with self.connection.cursor() as cursor:
                 cursor.execute("""                                      
-                    CREATE TABLE Client (
+                    CREATE TABLE client (
                     ID SERIAL PRIMARY KEY,
                     ID_user INT NOT NULL,
-                    start_time VARCHAR,
-                    end_time VARCHAR,
-                    smile_status VARCHAR
+                    start_time VARCHAR NOT NULL,
+                    end_time VARCHAR NOT NULL,
+                    smile_status VARCHAR NOT NULL
                     );
 
-                    CREATE TABLE Dialog (
+                    CREATE TABLE dialog (
                     ID_dialog SERIAL PRIMARY KEY,
                     question VARCHAR NOT NULL,
                     answer VARCHAR NOT NULL,
@@ -76,16 +77,26 @@ class DatabaseLogs():
                     time_dialog VARCHAR NOT NULL,
                     voice_file VARCHAR NOT NULL,
                     photo_file VARCHAR NOT NULL,
-                    tonality VARCHAR NOT NULL,
-                    tonality_metric FLOAT NOT NULL,
                     ID_client INT NOT NULL
                     );
+                    
+                    CREATE TABLE emotion (
+                        ID_emotion SERIAL PRIMARY KEY,
+                        label VARCHAR NOT NULL,
+                        score FLOAT NOT NULL,
+                        ID_dialog INT REFERENCES Dialog(ID_dialog)
+                    );
+
 
                                             -- СВЯЗЫВАНИЕ БД ВНЕШНИМИ КЛЮЧАМИ --
                     ALTER TABLE Dialog
-                    ADD CONSTRAINT FR_Dialog_Correspondence
+                    ADD CONSTRAINT FR_Dialog_Client
                         FOREIGN KEY (ID_client) REFERENCES Client (ID);
-                """)
+                        
+                    ALTER TABLE Emotion
+                    ADD CONSTRAINT FR_Emotion_Dialog
+                        FOREIGN KEY (ID_dialog) REFERENCES Dialog (ID_dialog);
+                    """)
 
             # Подтверждение изменений
             self.connection.commit()
@@ -108,28 +119,47 @@ class DatabaseLogs():
 
                 # Подтверждение изменений
                 self.connection.commit()
-                print("[INFO] Данные успешно вставлены")
+                print("[INFO] Client Данные успешно вставлены")
         except Exception as ex:
             # Откат транзакции в случае ошибки
             self.connection.rollback()
-            print("[INFO] Ошибка при заполнение данных:", ex)
+            print("[INFO] Client Ошибка при заполнение данных:", ex)
 
-    def insert_dialog(self, question, answer, intent, common_token, time_dialog, voice_file, photo_file, tonality, tonality_metric, ID_client):
+    def insert_dialog(self, question, answer, intent, common_token, time_dialog, voice_file, photo_file, ID_client):
         try:
             with self.connection.cursor() as cursor:
                 cursor.execute(
-                    """INSERT INTO Dialog (question, answer, intent, common_token, time_dialog, voice_file, photo_file, tonality, tonality_metric, ID_client) VALUES
-                        (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);""",
-                    (question, answer, intent, common_token, time_dialog, voice_file, photo_file, tonality, tonality_metric, ID_client)
+                    """INSERT INTO Dialog (question, answer, intent, common_token, time_dialog, voice_file, photo_file, ID_client) VALUES
+                        (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING ID_dialog;""",
+                    (question, answer, intent, common_token, time_dialog, voice_file, photo_file, ID_client)
+                )
+
+                self.ID_dialog = cursor.fetchone()[0]
+
+                # Подтверждение изменений
+                self.connection.commit()
+                print("[INFO] Dialog Данные успешно вставлены")
+        except Exception as ex:
+            # Откат транзакции в случае ошибки
+            self.connection.rollback()
+            print("[INFO] Dialog Ошибка при заполнение данных:", ex)
+
+    def insert_emotion(self, label, score, ID_dialog):
+        try:
+            with self.connection.cursor() as cursor:
+                cursor.execute(
+                    """INSERT INTO Emotion (label, score, ID_dialog) VALUES
+                        (%s, %s, %s);""",
+                    (label, score, ID_dialog)
                 )
 
                 # Подтверждение изменений
                 self.connection.commit()
-                print("[INFO] Данные успешно вставлены")
+                print("[INFO] Emotion Данные успешно вставлены")
         except Exception as ex:
             # Откат транзакции в случае ошибки
             self.connection.rollback()
-            print("[INFO] Ошибка при заполнение данных:", ex)
+            print("[INFO] Emotion Ошибка при заполнение данных:", ex)
 
     # Обновление данных таблицы переписок
     def update_correspondence_end_time(self, end_time, smile_status, ID_client):

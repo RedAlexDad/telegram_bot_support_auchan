@@ -1,6 +1,7 @@
 import openai
 import tiktoken
 from datetime import datetime
+import requests
 
 # конфиг и файлы с базами знаний
 import chatGPT.auchan_config as CFG
@@ -17,7 +18,7 @@ import chatGPT.auchan_data.refund_nonfood as REFUND_NONFOOD  # "возврат �
 import chatGPT.auchan_data.shops as SHOPS  # "адреса ашан"
 # import chatGPT.auchan_data.city as CITY  # Города в РФ
 
-from config import CHAT_GPT_API_KEY
+from config import CHAT_GPT_API_KEY, API_URL_EMOTION, API_TOKEN_EMOTION
 
 # from chatGPT.json_function import json_for_logs
 
@@ -60,32 +61,11 @@ class chatGPT():
         # Диалог и его свойства
         self.dialog = dict
 
-        # Пример БД
-        # {
-        #     "id_user": [
-        #         [
-        #             {
-        #                 "user": "здравствуйте",
-        #                 "chatGPT": "Здравствуйте! Чем я могу помочь вам сегодня?",
-        #                 "intent": "Тема данного сообщения: \"начало диалога\".",
-        #                 "datetime": "2023-08-15 20:31:43.250329"
-        #             },
-        #             {
-        #                 "user": "я хочу купить фен, у вас есть?",
-        #                 "chatGPT": "Да, в магазинах Ашан представлен широкий ассортимент фенов различных брендов и моделей. Вы можете посетить ближайший магазин Ашан или ознакомиться с ассортиментом на нашем сайте. Если вам нужна помощь в выборе, я с удовольствием помогу!",
-        #                 "intent": "Тема сообщения: \"запрос на наличие товара\".",
-        #                 "datetime": "2023-08-15 20:31:58.815131"
-        #             },
-        #             {
-        #                 "user": "понял, спасибо, пока",
-        #                 "chatGPT": "На здоровье! Если у вас возникнут еще вопросы, не стесняйтесь обращаться. Приятных покупок! До свидания!",
-        #                 "intent": "\"конец диалога\"",
-        #                 "datetime": "2023-08-15 20:32:13.254727"
-        #             }
-        #         ],
-        #         ...
-        #     ]
-        # }
+    def emotion_text(self, payload):
+        headers = {"Authorization": f"Bearer {API_TOKEN_EMOTION}"}
+
+        self.response_emotion = requests.post(API_URL_EMOTION, headers=headers, json=payload)
+        return self.response_emotion.json()
 
     def review_model(self):
         self.model = openai.Model.list()

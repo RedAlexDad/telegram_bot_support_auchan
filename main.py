@@ -200,6 +200,8 @@ def start(message):
         print('prompt:', VtoT.text)
         bot.send_message(message.chat.id, f'Ваш вопрос: {VtoT.text}')
 
+
+
         max_count_attempt = 10
         # Получение промпта с чатГПТ
         while (max_count_attempt != 0):
@@ -360,7 +362,7 @@ def make_voice_and_push(message, text, TtoV):
     bot.send_voice(message.chat.id, voice_message_stream)
 
 # Заполнение данных в БД
-def INSERT_DB(message, chat_auchan, DB, voice_file=None, photo_file=None, tonality=None, tonality_metric=0):
+def INSERT_DB(message, chat_auchan, DB, voice_file=None, photo_file=None):
     DB.connect()
     DB.insert_dialog(
         question=message.text,
@@ -370,10 +372,15 @@ def INSERT_DB(message, chat_auchan, DB, voice_file=None, photo_file=None, tonali
         time_dialog=str(datetime.now()),
         voice_file=str(voice_file),
         photo_file=str(photo_file),
-        tonality=str(tonality),
-        tonality_metric=float(tonality_metric),
         ID_client=DB.ID_client
     )
+
+    emotions_data = chat_auchan.emotion_text({"inputs": message.text})
+    # Используем цикл для вставки данных в базу данных
+    for emotion in emotions_data[0]:
+        label = emotion['label']
+        score = emotion['score']
+        DB.insert_emotion(label=label, score=score, ID_dialog=DB.ID_dialog)
 
     if (chat_auchan.end_dialog):
         show_smiley_keyboard(message.chat.id)
