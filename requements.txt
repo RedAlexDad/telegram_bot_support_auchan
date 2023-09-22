@@ -3,3 +3,4 @@ boto3==1.28.41
 openai==0.27.8
 tiktoken==0.4.0
 psycopg2==2.9.7
+tabulate==0.9.0

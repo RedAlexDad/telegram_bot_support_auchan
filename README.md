@@ -179,6 +179,8 @@ Hackathon: 4-19 августа 2023, https://ai-hackathon.gigaschool.ru/
 
 Наш AI-ассистент актуален не только в сфере ритейла, но также может быть адаптирован для применения в любой отрасли, где требуется обработка заявок и сообщений от клиентов.
 
+### [Архитектура](Architecture_auchan.pdf)
+
 ---
 
 ### Благодарности
@@ -201,7 +203,9 @@ Hackathon: 4-19 августа 2023, https://ai-hackathon.gigaschool.ru/
 	- Григорьев Александр
 
 ---
-[Сертификат](Папин%20А.pdf)
+[Сертификат AI Generative Product Hackathon 2023](Papin.pdf)
+
+[Сертификат AI Talent Hackathon 2023](Papin_1.pdf)
 
 Полезные ссылки:
 - [Кейсы хакатона](https://ai-hackathon.gigaschool.ru/cases)
