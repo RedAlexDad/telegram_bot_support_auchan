@@ -2,7 +2,7 @@ import os
 import telebot
 from telebot import types
 
-from config import telegram_token
+from config import TG_BOT_TOKEN
 
 from Llama2.Llama2Class import Llama2
 from SpeechKIT.speechkit_voice_to_text import voice_to_text
@@ -14,7 +14,7 @@ from datetime import datetime
 import random
 
 # Создание бота
-bot = telebot.TeleBot(telegram_token)
+bot = telebot.TeleBot(TG_BOT_TOKEN)
 
 HELP = '''
 /help - Меню переключателя
